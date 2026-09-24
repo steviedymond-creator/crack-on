@@ -41,12 +41,31 @@ body {
 .status-panel {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 2rem;
   padding: 1rem 1.25rem;
   border: 1px solid var(--cyan);
   border-radius: 10px;
   margin-bottom: 1rem;
   background: var(--surface);
+  position: relative;
+}
+
+.new-session-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.7rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.7;
+}
+
+.new-session-btn:hover {
+  color: var(--cyan);
+  opacity: 1;
 }
 
 .status-item {
