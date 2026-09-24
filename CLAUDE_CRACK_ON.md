@@ -62,7 +62,7 @@ The switching is the demo.
 |-----------|-----------------|------|-------|
 | **Klimt** | Anthropic — claude-sonnet-4-6 | Orchestrating anchor. Always present. Manages context handoff. Returns after every specialist dispatch. | Cevin — `EGvjD0PIKVzXUvyMkwel` |
 | **Nebius** | Nebius Token Factory — openai/gpt-oss-120b | Open-source compute specialist. Dispatched by Klimt for applicable reasoning tasks. | Alex — `InRyolULHTXjegISsXuJ` |
-| **Tavily** | Tavily /search API | Web-grounded specialist. Fires on citation_required or current_events. Returns cited responses. | Jane — `NFFZBoF6tNodi008z7VH` |
+| **Tavily** | Tavily /search API | Web-grounded specialist. Fires on citation_required or current_events. Returns cited responses. | Domi — `AZnzlk1XvdvUeBnXmlld` |
 | **Auren** | OpenAI — gpt-5.5 | Multimodal specialist. Image generation via DALL-E 3. Distinct creative voice. | Guy — `8ZYhGJrsDOe4C8yzEEhP` |
 
 **Routing logic — simple and explicit:**
@@ -111,7 +111,7 @@ SUPABASE_URL=
 SUPABASE_ANON_KEY=
 ELEVENLABS_VOICE_KLIMT=EGvjD0PIKVzXUvyMkwel
 ELEVENLABS_VOICE_NEBIUS=InRyolULHTXjegISsXuJ
-ELEVENLABS_VOICE_TAVILY=NFFZBoF6tNodi008z7VH
+ELEVENLABS_VOICE_TAVILY=AZnzlk1XvdvUeBnXmlld
 ELEVENLABS_VOICE_AUREN=8ZYhGJrsDOe4C8yzEEhP
 ```
 
@@ -214,7 +214,8 @@ the current phase is working end to end.
 - Pass full context_entries as context to Tavily call
 - Render cited results in UI with source attribution
 - Append Tavily response to context_entries
-- ElevenLabs TTS for Tavily voice (Jane)
+- ElevenLabs TTS for Tavily voice (Domi — replaced the flatter default
+  "Jane" voice with a more energetic premade ElevenLabs voice)
 - Return to Klimt after Tavily response
 - Gate: Klimt → Tavily → Klimt loop working with context intact
 

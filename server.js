@@ -185,13 +185,38 @@ async function callAuren(history, userMessage) {
   return { reply, imageUrl };
 }
 
-async function callTavily(query, depth) {
+function buildContextSummary(history, maxEntries = 4, maxCharsPerEntry = 150) {
+  return history
+    .filter((entry) => entry.role === 'user' || entry.role === 'assistant')
+    .slice(-maxEntries)
+    .map((entry) => {
+      const snippet = entry.content.length > maxCharsPerEntry
+        ? `${entry.content.slice(0, maxCharsPerEntry)}…`
+        : entry.content;
+      return `${entry.role === 'user' ? 'User' : entry.companion}: ${snippet}`;
+    })
+    .join('\n');
+}
+
+async function callTavily(history, query, depth) {
+  const contextSummary = buildContextSummary(history);
+  let contextualQuery = contextSummary
+    ? `Conversation so far:\n${contextSummary}\n\nCurrent question: ${query}`
+    : query;
+  // Tavily rejects queries over 1500 chars — trim the summary, never the question.
+  const MAX_QUERY_LENGTH = 1400;
+  if (contextualQuery.length > MAX_QUERY_LENGTH) {
+    const prefix = 'Conversation so far:\n';
+    const suffix = `\n\nCurrent question: ${query}`;
+    const availableForSummary = Math.max(MAX_QUERY_LENGTH - prefix.length - suffix.length, 0);
+    contextualQuery = `${prefix}${contextSummary.slice(-availableForSummary)}${suffix}`;
+  }
   const res = await fetch('https://api.tavily.com/search', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       api_key: env.TAVILY_API_KEY,
-      query,
+      query: contextualQuery,
       search_depth: depth,
       include_answer: true,
       max_results: 5,
@@ -209,6 +234,27 @@ async function readJsonBody(req) {
   for await (const chunk of req) chunks.push(chunk);
   const raw = Buffer.concat(chunks).toString('utf8');
   return raw ? JSON.parse(raw) : {};
+}
+
+// Voice output must be plain speech — strip Markdown syntax before ElevenLabs.
+function stripMarkdown(text) {
+  return text
+    .replace(/```[\s\S]*?```/g, (block) => block.replace(/```/g, ''))
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/__(.+?)__/g, '$1')
+    .replace(/_(.+?)_/g, '$1')
+    .replace(/\[(.+?)\]\((.+?)\)/g, '$1')
+    .replace(/\|/g, ' ')
+    .replace(/^[\s*_-]{3,}$/gm, '')
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    .replace(/\n{2,}/g, '. ')
+    .replace(/\n/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 async function handleApi(req, res, url) {
@@ -252,7 +298,7 @@ async function handleApi(req, res, url) {
     let imageUrl;
     try {
       if (intent.companion === 'tavily') {
-        ({ reply, sources } = await callTavily(message, intent.depth));
+        ({ reply, sources } = await callTavily(history, message, intent.depth));
       } else if (intent.companion === 'nebius') {
         reply = await callNebius(history, message);
       } else if (intent.companion === 'auren') {
@@ -294,7 +340,7 @@ async function handleApi(req, res, url) {
           'Content-Type': 'application/json',
           Accept: 'audio/mpeg',
         },
-        body: JSON.stringify({ text, model_id: 'eleven_multilingual_v2' }),
+        body: JSON.stringify({ text: stripMarkdown(text), model_id: 'eleven_multilingual_v2' }),
       }
     );
     if (!ttsRes.ok) {
