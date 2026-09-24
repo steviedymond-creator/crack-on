@@ -61,7 +61,7 @@ The switching is the demo.
 | Companion | Provider / Model | Role | Voice |
 |-----------|-----------------|------|-------|
 | **Klimt** | Anthropic — claude-sonnet-4-6 | Orchestrating anchor. Always present. Manages context handoff. Returns after every specialist dispatch. | Cevin — `EGvjD0PIKVzXUvyMkwel` |
-| **Nebius** | Nebius Token Factory — openai/gpt-oss-120b | Open-source compute specialist. Dispatched by Klimt for applicable reasoning tasks. | Alex — `InRyolULHTXjegISsXuJ` |
+| **Nebius** | Nebius Token Factory — Qwen/Qwen3-30B-A3B-Instruct-2507 | Open-source compute specialist. Dispatched by Klimt for applicable reasoning tasks. | Alex — `InRyolULHTXjegISsXuJ` |
 | **Tavily** | Tavily /search API | Web-grounded specialist. Fires on citation_required or current_events. Returns cited responses. | Domi — `AZnzlk1XvdvUeBnXmlld` |
 | **Auren** | OpenAI — gpt-5.5 | Multimodal specialist. Image generation via DALL-E 3. Distinct creative voice. | Guy — `8ZYhGJrsDOe4C8yzEEhP` |
 
@@ -89,7 +89,7 @@ has a home.
 | **Companion dispatch** | Direct API calls per companion. Klimt orchestrates. Simple intent classifier. |
 | **Voice** | ElevenLabs TTS — distinct voice per companion. Streamed audio per response. |
 | **Klimt** | Anthropic SDK — claude-sonnet-4-6. `process.env.ANTHROPIC_API_KEY` |
-| **Nebius** | OpenAI-compatible SDK — base URL: `https://api.studio.nebius.com/v1`. `process.env.NEBIUS_API_KEY`. Model: `openai/gpt-oss-120b` |
+| **Nebius** | OpenAI-compatible SDK — base URL: `https://api.studio.nebius.com/v1`. `process.env.NEBIUS_API_KEY`. Model: `Qwen/Qwen3-30B-A3B-Instruct-2507` |
 | **Tavily** | `@tavily/core` SDK — /search endpoint. basic depth for web_grounded, advanced for citation_required. |
 | **Auren** | OpenAI SDK — gpt-5.5. DALL-E 3 for image generation. Rendered inline. |
 | **ElevenLabs** | `@elevenlabs/elevenlabs-js` SDK. Voice IDs in env. Streamed audio. |
@@ -221,8 +221,9 @@ the current phase is working end to end.
 
 ### P4 — Nebius Integration
 - Extend intent classifier: detect open_source_compute keywords
-- Dispatch to Nebius Token Factory (openai/gpt-oss-120b — Llama-3.3-70B-Instruct
-  was unavailable on this account's Nebius plan)
+- Dispatch to Nebius Token Factory (Qwen/Qwen3-30B-A3B-Instruct-2507 —
+  fast MoE model available on this account's Nebius public endpoint; no
+  Llama model of any size is available on this key)
 - Base URL: https://api.studio.nebius.com/v1 (OpenAI-compatible)
 - Pass full context_entries as conversation history
 - Append Nebius response to context_entries
