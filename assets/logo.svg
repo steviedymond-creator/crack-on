@@ -1,0 +1,11 @@
+<svg width="160" height="48" viewBox="0 0 160 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Crack On logo">
+  <defs>
+    <linearGradient id="crackon-mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#f5c518"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="46" height="46" rx="10" fill="#0a0e1a" stroke="url(#crackon-mark)" stroke-width="2"/>
+  <path d="M14 32 L24 16 L20 24 L34 24 L22 40 L26 30 Z" fill="url(#crackon-mark)"/>
+  <text x="58" y="30" font-family="system-ui, sans-serif" font-size="20" font-weight="700" fill="#ffffff">Crack<tspan fill="#00d4ff">On</tspan></text>
+</svg>

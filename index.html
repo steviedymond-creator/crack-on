@@ -8,8 +8,43 @@
 </head>
 <body>
   <div id="app">
-    <!-- Crack On UI builds here -->
+    <header class="app-header">
+      <img src="assets/logo.svg" alt="Crack On" class="logo" width="160" height="48" />
+      <p class="tagline">Stop re-briefing. Crack On.</p>
+    </header>
+
+    <section class="status-panel" aria-label="Companion status">
+      <div class="status-item">
+        <span class="label">Active companion</span>
+        <span class="companion-chip">
+          <span id="companion-dot" class="companion-dot companion-klimt"></span>
+          <span id="active-companion" class="value companion-klimt">Klimt</span>
+          <span id="voice-label" class="voice-label">Voice: Cevin</span>
+          <span id="speaking-indicator" class="speaking-indicator" hidden>🔊 speaking…</span>
+        </span>
+      </div>
+      <div class="status-item">
+        <span class="label">Session</span>
+        <span id="session-indicator" class="value muted">connecting…</span>
+      </div>
+    </section>
+
+    <section class="thread-panel" id="thread" aria-live="polite">
+      <!-- Messages render here -->
+    </section>
+
+    <form id="composer" class="composer">
+      <input
+        id="composer-input"
+        type="text"
+        placeholder="Talk to Klimt…"
+        autocomplete="off"
+        required
+      />
+      <button type="submit">Send</button>
+    </form>
   </div>
-  <script src="app.js"></script>
+  <audio id="voice-player" hidden></audio>
+  <script src="app.js" type="module"></script>
 </body>
 </html>

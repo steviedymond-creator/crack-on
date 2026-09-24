@@ -1,0 +1,11 @@
+{
+  "name": "crack-on",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Crack On — context follows the person, not the platform.",
+  "scripts": {
+    "start": "node server.js",
+    "verify:supabase": "node scripts/verify-supabase.mjs"
+  }
+}

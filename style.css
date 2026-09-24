@@ -22,3 +22,246 @@ body {
   margin: 0 auto;
   padding: 2rem;
 }
+
+.app-header {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.logo {
+  display: block;
+}
+
+.tagline {
+  color: var(--gold);
+  font-size: 0.9rem;
+}
+
+.status-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--cyan);
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.06), rgba(245, 197, 24, 0.04));
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.status-item .label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-item .value {
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.companion-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.companion-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: currentColor;
+  transition: background-color 0.3s ease;
+}
+
+.voice-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.speaking-indicator {
+  font-size: 0.75rem;
+  color: var(--cyan);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.companion-klimt { color: var(--cyan); }
+.companion-tavily { color: var(--gold); }
+.companion-nebius { color: #7dffb3; }
+.companion-auren { color: #ff8fd6; }
+.muted { color: var(--muted); }
+
+.thread-panel {
+  height: 50vh;
+  overflow-y: auto;
+  padding: 1rem;
+  border: 1px solid #1b2338;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.message {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #101627;
+  position: relative;
+  transition: border-color 0.3s ease;
+}
+
+.message-assistant.companion-klimt { border-left: 3px solid var(--cyan); }
+.message-assistant.companion-tavily { border-left: 3px solid var(--gold); }
+.message-assistant.companion-nebius { border-left: 3px solid #7dffb3; }
+.message-assistant.companion-auren { border-left: 3px solid #ff8fd6; }
+
+.message-user {
+  border-left: 3px solid var(--gold);
+  align-self: flex-end;
+}
+
+.message-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.message-body {
+  white-space: pre-wrap;
+  color: var(--white);
+}
+
+.sources {
+  margin-top: 0.5rem;
+  padding-left: 1.25rem;
+  font-size: 0.8rem;
+}
+
+.sources a {
+  color: var(--gold);
+}
+
+.generated-image {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.resume-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  background: rgba(245, 197, 24, 0.08);
+  color: var(--gold);
+}
+
+.resume-banner span {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: 1px solid var(--muted);
+  color: var(--muted);
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.copy-btn:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.composer {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.composer input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #1b2338;
+  background: #101627;
+  color: var(--white);
+  font-size: 1rem;
+}
+
+.composer input:focus {
+  outline: none;
+  border-color: var(--cyan);
+}
+
+.composer button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--cyan);
+  color: var(--bg);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.composer button:hover {
+  background: var(--gold);
+}
+
+@media (max-width: 640px) {
+  #app {
+    padding: 1rem;
+  }
+
+  .app-header h1,
+  .logo {
+    width: 130px;
+    height: auto;
+  }
+
+  .status-panel {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .thread-panel {
+    height: 60vh;
+  }
+
+  .composer {
+    flex-direction: column;
+  }
+
+  .composer button {
+    width: 100%;
+  }
+
+  .message-user {
+    align-self: stretch;
+  }
+}
