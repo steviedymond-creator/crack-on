@@ -300,6 +300,8 @@ async function bootstrapSession() {
   const historyRes = await fetch(`/api/session/${sessionId}/context`);
   const history = await historyRes.json();
 
+  const isBrandNewSession = !isReturning && history.length === 0;
+
   if (isReturning && history.length > 0) {
     renderResumeBanner();
     sessionIndicatorEl.textContent = `resumed — context intact (${sessionId.slice(0, 8)})`;
@@ -310,6 +312,34 @@ async function bootstrapSession() {
 
   for (const entry of history) {
     renderMessage(entry.companion, entry.role, entry.content, undefined, entry.metadata?.imageUrl);
+  }
+
+  if (isBrandNewSession) {
+    await sendOpeningGreeting();
+  }
+}
+
+async function sendOpeningGreeting() {
+  setActiveCompanion('klimt');
+  const thinkingEl = renderThinking('klimt');
+  setComposerDisabled(true);
+  try {
+    const res = await fetch('/api/greet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId }),
+    });
+    if (!res.ok) return;
+    const { companion, reply } = await res.json();
+    renderMessage(companion, 'assistant', reply);
+    if (config?.voices?.[companion]) {
+      playVoice(reply, config.voices[companion]);
+    }
+  } catch (err) {
+    console.warn('Opening greeting unavailable:', err.message);
+  } finally {
+    thinkingEl.remove();
+    setComposerDisabled(false);
   }
 }
 
