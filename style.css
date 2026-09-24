@@ -1,0 +1,24 @@
+﻿/* Crack On — dark theme scaffold */
+/* Brand: navy, cyan, yellow-gold, white */
+:root {
+  --bg: #0a0e1a;
+  --cyan: #00d4ff;
+  --gold: #f5c518;
+  --white: #ffffff;
+  --muted: #8892a4;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
