@@ -13,6 +13,7 @@ const speakingIndicatorEl = document.getElementById('speaking-indicator');
 const stopAudioBtnEl = document.getElementById('stop-audio-btn');
 const micBtnEl = document.getElementById('mic-btn');
 const sendBtnEl = composerEl?.querySelector('button[type="submit"]');
+const newSessionBtnEl = document.getElementById('new-session-btn');
 
 const SESSION_STORAGE_KEY = 'crackon_session_id';
 const COMPANION_META = {
@@ -390,5 +391,10 @@ async function init() {
   config = await fetch('/api/config').then((res) => res.json());
   await bootstrapSession();
 }
+
+newSessionBtnEl.addEventListener('click', () => {
+  localStorage.removeItem(SESSION_STORAGE_KEY);
+  location.reload();
+});
 
 init();
