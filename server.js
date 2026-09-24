@@ -282,6 +282,24 @@ async function handleApi(req, res, url) {
     return;
   }
 
+  if (req.method === 'POST' && url.pathname === '/api/greet') {
+    const { sessionId } = await readJsonBody(req);
+    if (!sessionId) {
+      res.statusCode = 400;
+      res.end(JSON.stringify({ error: 'sessionId is required' }));
+      return;
+    }
+    // No user turn to persist here — this is Klimt opening the thread
+    // unprompted, so only the assistant reply is written to context_entries.
+    const reply = await callKlimt(
+      [],
+      'Greet me briefly as Klimt, opening a brand new session. Introduce yourself in one short sentence and ask what we are working on today.'
+    );
+    const assistantEntry = await appendContextEntry(sessionId, 'klimt', 'assistant', reply);
+    res.end(JSON.stringify({ companion: 'klimt', reply, entry: assistantEntry }));
+    return;
+  }
+
   if (req.method === 'POST' && url.pathname === '/api/message') {
     const { sessionId, message } = await readJsonBody(req);
     if (!sessionId || !message) {
