@@ -31,7 +31,12 @@ const COMPANION_NAMES = Object.fromEntries(
 // truth for actual dispatch/fallback.
 const CITATION_KEYWORDS = ['cite', 'citation', 'source', 'according to', 'reference', 'proof'];
 const CURRENT_EVENTS_KEYWORDS = ['today', 'latest', 'recent', 'news', 'this week', 'right now', 'currently', 'happening now'];
-const OPEN_SOURCE_COMPUTE_KEYWORDS = ['open source', 'open-source', 'llama', 'nebius', 'oss model'];
+const OPEN_SOURCE_COMPUTE_KEYWORDS = [
+  'open source', 'open-source', 'llama', 'qwen', 'weights', 'parameters',
+  'transformer architecture', 'neural network', 'machine learning',
+  'compute', 'inference', 'fine-tune', 'fine-tuning', 'embeddings',
+  'tokenizer', 'gpu', 'cuda',
+];
 const IMAGE_GENERATION_KEYWORDS = ['generate an image', 'draw', 'picture of', 'image of', 'create an image', 'illustration', 'photo of', 'paint'];
 
 function guessIntent(message) {
@@ -195,11 +200,30 @@ function renderMessage(companion, role, content, sources, imageUrl) {
   wrapper.append(meta, body, copyBtn);
 
   if (imageUrl) {
+    const figure = document.createElement('figure');
+    figure.className = 'generated-image-figure';
+
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.title = 'Open full size';
+
     const img = document.createElement('img');
     img.className = 'generated-image';
     img.src = imageUrl;
     img.alt = content;
-    wrapper.appendChild(img);
+    link.appendChild(img);
+
+    const downloadBtn = document.createElement('a');
+    downloadBtn.className = 'download-image-btn';
+    downloadBtn.href = imageUrl;
+    downloadBtn.download = `crack-on-${Date.now()}.png`;
+    downloadBtn.title = 'Download image';
+    downloadBtn.textContent = '⬇';
+
+    figure.append(link, downloadBtn);
+    wrapper.appendChild(figure);
   }
 
   if (sources?.length) {
@@ -304,9 +328,9 @@ async function bootstrapSession() {
 
   if (isReturning && history.length > 0) {
     renderResumeBanner();
-    sessionIndicatorEl.textContent = `resumed — context intact (${sessionId.slice(0, 8)})`;
+    sessionIndicatorEl.textContent = 'resumed — context intact';
   } else {
-    sessionIndicatorEl.textContent = `active (${sessionId.slice(0, 8)})`;
+    sessionIndicatorEl.textContent = 'active';
   }
   sessionIndicatorEl.classList.remove('muted');
 

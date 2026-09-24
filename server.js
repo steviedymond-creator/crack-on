@@ -28,24 +28,38 @@ const KLIMT_SYSTEM_PROMPT =
 // Keyword-based intent classification only — no PC router logic.
 const CITATION_KEYWORDS = ['cite', 'citation', 'source', 'according to', 'reference', 'proof'];
 const CURRENT_EVENTS_KEYWORDS = ['today', 'latest', 'recent', 'news', 'this week', 'right now', 'currently', 'happening now'];
-const OPEN_SOURCE_COMPUTE_KEYWORDS = ['open source', 'open-source', 'llama', 'nebius', 'oss model'];
+const OPEN_SOURCE_COMPUTE_KEYWORDS = [
+  'open source', 'open-source', 'llama', 'qwen', 'weights', 'parameters',
+  'transformer architecture', 'neural network', 'machine learning',
+  'compute', 'inference', 'fine-tune', 'fine-tuning', 'embeddings',
+  'tokenizer', 'gpu', 'cuda',
+];
 const IMAGE_GENERATION_KEYWORDS = ['generate an image', 'draw', 'picture of', 'image of', 'create an image', 'illustration', 'photo of', 'paint'];
 
 function classifyIntent(message) {
   const text = message.toLowerCase();
-  if (IMAGE_GENERATION_KEYWORDS.some((kw) => text.includes(kw))) {
-    return { companion: 'auren' };
+
+  const imageMatch = IMAGE_GENERATION_KEYWORDS.find((kw) => text.includes(kw));
+  if (imageMatch) {
+    return { companion: 'auren', reason: `matched image keyword "${imageMatch}"` };
   }
-  const openSourceCompute = OPEN_SOURCE_COMPUTE_KEYWORDS.some((kw) => text.includes(kw));
-  if (openSourceCompute) {
-    return { companion: 'nebius' };
+
+  const openSourceMatch = OPEN_SOURCE_COMPUTE_KEYWORDS.find((kw) => text.includes(kw));
+  if (openSourceMatch) {
+    return { companion: 'nebius', reason: `matched open-source-compute keyword "${openSourceMatch}"` };
   }
-  const citationRequired = CITATION_KEYWORDS.some((kw) => text.includes(kw));
-  const currentEvents = CURRENT_EVENTS_KEYWORDS.some((kw) => text.includes(kw));
-  if (citationRequired || currentEvents) {
-    return { companion: 'tavily', depth: citationRequired ? 'advanced' : 'basic' };
+
+  const citationMatch = CITATION_KEYWORDS.find((kw) => text.includes(kw));
+  const currentEventsMatch = CURRENT_EVENTS_KEYWORDS.find((kw) => text.includes(kw));
+  if (citationMatch || currentEventsMatch) {
+    return {
+      companion: 'tavily',
+      depth: citationMatch ? 'advanced' : 'basic',
+      reason: `matched ${citationMatch ? 'citation' : 'current-events'} keyword "${citationMatch ?? currentEventsMatch}"`,
+    };
   }
-  return { companion: 'klimt' };
+
+  return { companion: 'klimt', reason: 'no specialist keyword matched (default)' };
 }
 
 const MIME_TYPES = {
@@ -122,11 +136,22 @@ async function callKlimt(history, userMessage) {
   return data.content.map((block) => block.text ?? '').join('');
 }
 
+const NEBIUS_SYSTEM_PROMPT =
+  'You are Nebius, the open-source compute specialist for Crack On. ' +
+  'Respond concisely in plain prose — quality over length, no tables, no ' +
+  'headers, minimal formatting. Always end with a "## Summary" section ' +
+  'containing 3-5 short bullet points capturing the key takeaways — only ' +
+  'that summary will be read aloud via text-to-speech, so it must stand ' +
+  'on its own.';
+
 async function callNebius(history, userMessage) {
-  const messages = history
-    .filter((entry) => entry.role === 'user' || entry.role === 'assistant')
-    .map((entry) => ({ role: entry.role, content: entry.content }));
-  messages.push({ role: 'user', content: userMessage });
+  const messages = [
+    { role: 'system', content: NEBIUS_SYSTEM_PROMPT },
+    ...history
+      .filter((entry) => entry.role === 'user' || entry.role === 'assistant')
+      .map((entry) => ({ role: entry.role, content: entry.content })),
+    { role: 'user', content: userMessage },
+  ];
 
   const res = await fetch('https://api.studio.nebius.com/v1/chat/completions', {
     method: 'POST',
@@ -135,9 +160,11 @@ async function callNebius(history, userMessage) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'openai/gpt-oss-120b',
+      model: 'Qwen/Qwen3-30B-A3B-Instruct-2507',
+      max_tokens: 400,
       messages,
     }),
+    signal: AbortSignal.timeout(15000),
   });
   if (!res.ok) throw new Error(`Nebius call failed: ${res.status} ${await res.text()}`);
   const data = await res.json();
@@ -239,8 +266,9 @@ async function readJsonBody(req) {
 // Voice output must be plain speech — strip Markdown syntax before ElevenLabs.
 function stripMarkdown(text) {
   return text
-    .replace(/```[\s\S]*?```/g, (block) => block.replace(/```/g, ''))
-    .replace(/`([^`]+)`/g, '$1')
+    // Drop fenced/inline code entirely — reading code aloud is meaningless.
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]*`/g, ' ')
     .replace(/^#{1,6}\s+/gm, '')
     .replace(/\*\*(.+?)\*\*/g, '$1')
     .replace(/\*(.+?)\*/g, '$1')
@@ -251,10 +279,24 @@ function stripMarkdown(text) {
     .replace(/^[\s*_-]{3,}$/gm, '')
     .replace(/^\s*[-*+]\s+/gm, '')
     .replace(/^\s*\d+\.\s+/gm, '')
+    // Strip any remaining hash symbols, arrows, and code-style brackets.
+    .replace(/#/g, '')
+    .replace(/[→←↔⇒⇐⇔]/g, ' ')
+    .replace(/-{1,2}>/g, ' ')
+    .replace(/<-{1,2}/g, ' ')
+    .replace(/[[\]{}]/g, ' ')
     .replace(/\n{2,}/g, '. ')
     .replace(/\n/g, ' ')
     .replace(/\s{2,}/g, ' ')
     .trim();
+}
+
+// Nebius responses end with a "## Summary" heading — only that section
+// should be spoken aloud, not the full detailed body.
+function extractTtsText(text) {
+  const match = text.match(/^#{1,6}\s*.*\bsummary\b.*$/im);
+  if (!match) return text;
+  return text.slice(match.index + match[0].length);
 }
 
 async function handleApi(req, res, url) {
@@ -308,6 +350,7 @@ async function handleApi(req, res, url) {
       return;
     }
     const intent = classifyIntent(message);
+    console.log(`[intent] "${message.slice(0, 80)}" -> ${intent.companion} (${intent.reason})`);
     const history = await getContextEntries(sessionId);
     await appendContextEntry(sessionId, intent.companion, 'user', message);
 
@@ -358,7 +401,7 @@ async function handleApi(req, res, url) {
           'Content-Type': 'application/json',
           Accept: 'audio/mpeg',
         },
-        body: JSON.stringify({ text: stripMarkdown(text), model_id: 'eleven_multilingual_v2' }),
+        body: JSON.stringify({ text: stripMarkdown(extractTtsText(text)), model_id: 'eleven_multilingual_v2' }),
       }
     );
     if (!ttsRes.ok) {
