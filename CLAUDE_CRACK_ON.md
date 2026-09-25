@@ -61,8 +61,8 @@ The switching is the demo.
 | Companion | Provider / Model | Role | Voice |
 |-----------|-----------------|------|-------|
 | **Klimt** | Anthropic — claude-sonnet-4-6 | Orchestrating anchor. Always present. Manages context handoff. Returns after every specialist dispatch. | Cevin — `EGvjD0PIKVzXUvyMkwel` |
-| **Nebius** | Nebius Token Factory — Qwen/Qwen3-30B-A3B-Instruct-2507 | Open-source compute specialist. Dispatched by Klimt for applicable reasoning tasks. | Alex — `InRyolULHTXjegISsXuJ` |
-| **Tavily** | Tavily /search API | Web-grounded specialist. Fires on citation_required or current_events. Returns cited responses. | Domi — `AZnzlk1XvdvUeBnXmlld` |
+| **Nebius** | Nebius Token Factory — Qwen/Qwen3-30B-A3B-Instruct-2507 | Open-source compute specialist. Dispatched by Klimt for applicable reasoning tasks. | Steve — `eFsK7V4odsRpqOxGAOc8` |
+| **Tavily** | Tavily /search API | Web-grounded specialist. Fires on citation_required or current_events. Returns cited responses. | Maya — `ii0s2u4R3UFnxKL6DOrz` |
 | **Auren** | OpenAI — gpt-5.5 | Multimodal specialist. Image generation via DALL-E 3. Distinct creative voice. | Guy — `8ZYhGJrsDOe4C8yzEEhP` |
 
 **Routing logic — simple and explicit:**
@@ -110,8 +110,8 @@ TAVILY_API_KEY=
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
 ELEVENLABS_VOICE_KLIMT=EGvjD0PIKVzXUvyMkwel
-ELEVENLABS_VOICE_NEBIUS=InRyolULHTXjegISsXuJ
-ELEVENLABS_VOICE_TAVILY=AZnzlk1XvdvUeBnXmlld
+ELEVENLABS_VOICE_NEBIUS=eFsK7V4odsRpqOxGAOc8
+ELEVENLABS_VOICE_TAVILY=ii0s2u4R3UFnxKL6DOrz
 ELEVENLABS_VOICE_AUREN=8ZYhGJrsDOe4C8yzEEhP
 ```
 
@@ -214,8 +214,8 @@ the current phase is working end to end.
 - Pass full context_entries as context to Tavily call
 - Render cited results in UI with source attribution
 - Append Tavily response to context_entries
-- ElevenLabs TTS for Tavily voice (Domi — replaced the flatter default
-  "Jane" voice with a more energetic premade ElevenLabs voice)
+- ElevenLabs TTS for Tavily voice (Maya — replaced the flatter default
+  "Jane" voice, then "Domi", with a clearer premade ElevenLabs voice)
 - Return to Klimt after Tavily response
 - Gate: Klimt → Tavily → Klimt loop working with context intact
 
@@ -227,7 +227,7 @@ the current phase is working end to end.
 - Base URL: https://api.studio.nebius.com/v1 (OpenAI-compatible)
 - Pass full context_entries as conversation history
 - Append Nebius response to context_entries
-- ElevenLabs TTS for Nebius voice (Alex)
+- ElevenLabs TTS for Nebius voice (Steve)
 - Return to Klimt after Nebius response
 - Gate: Klimt → Nebius → Klimt loop working with context intact
 

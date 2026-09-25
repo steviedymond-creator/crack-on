@@ -23,16 +23,23 @@ const PORT = process.env.PORT || 3000;
 const KLIMT_SYSTEM_PROMPT =
   'You are Klimt, the orchestrating anchor companion for Crack On. ' +
   'You keep the conversation thread intact for the user no matter what ' +
-  'happens. Be warm, concise, and helpful.';
+  'happens. Be warm, concise, and helpful. ' +
+  'You are the anchor companion in a multi-companion system. When you see ' +
+  'messages attributed to [Tavily], [Nebius], or [Auren] in the ' +
+  'conversation history, these are your specialist companions who handled ' +
+  'those queries. You are aware of everything they said and can reference ' +
+  'their responses. You did not answer those questions yourself — your ' +
+  'specialists did. Be honest about this.';
 
 // Keyword-based intent classification only — no PC router logic.
+// Tavily is the fast, reliable general information specialist (citation +
+// current-events triggers). Nebius fires only on narrow open-source
+// compute keywords so it stays rare during live demos (it is much slower).
 const CITATION_KEYWORDS = ['cite', 'citation', 'source', 'according to', 'reference', 'proof'];
 const CURRENT_EVENTS_KEYWORDS = ['today', 'latest', 'recent', 'news', 'this week', 'right now', 'currently', 'happening now'];
 const OPEN_SOURCE_COMPUTE_KEYWORDS = [
-  'open source', 'open-source', 'llama', 'qwen', 'weights', 'parameters',
-  'transformer architecture', 'neural network', 'machine learning',
-  'compute', 'inference', 'fine-tune', 'fine-tuning', 'embeddings',
-  'tokenizer', 'gpu', 'cuda',
+  'open source model', 'llama', 'qwen', 'neural network weights',
+  'transformer architecture', 'fine-tuning', 'gpu inference',
 ];
 const IMAGE_GENERATION_KEYWORDS = ['generate an image', 'draw', 'picture of', 'image of', 'create an image', 'illustration', 'photo of', 'paint'];
 
@@ -41,12 +48,12 @@ function classifyIntent(message) {
 
   const imageMatch = IMAGE_GENERATION_KEYWORDS.find((kw) => text.includes(kw));
   if (imageMatch) {
-    return { companion: 'auren', reason: `matched image keyword "${imageMatch}"` };
+    return { companion: 'auren', label: 'image_generation', reason: `matched image keyword "${imageMatch}"` };
   }
 
   const openSourceMatch = OPEN_SOURCE_COMPUTE_KEYWORDS.find((kw) => text.includes(kw));
   if (openSourceMatch) {
-    return { companion: 'nebius', reason: `matched open-source-compute keyword "${openSourceMatch}"` };
+    return { companion: 'nebius', label: 'open_source_compute', reason: `matched open-source-compute keyword "${openSourceMatch}"` };
   }
 
   const citationMatch = CITATION_KEYWORDS.find((kw) => text.includes(kw));
@@ -55,11 +62,12 @@ function classifyIntent(message) {
     return {
       companion: 'tavily',
       depth: citationMatch ? 'advanced' : 'basic',
+      label: 'citation_required',
       reason: `matched ${citationMatch ? 'citation' : 'current-events'} keyword "${citationMatch ?? currentEventsMatch}"`,
     };
   }
 
-  return { companion: 'klimt', reason: 'no specialist keyword matched (default)' };
+  return { companion: 'klimt', label: 'general', reason: 'no specialist keyword matched (default)' };
 }
 
 const MIME_TYPES = {
@@ -111,10 +119,20 @@ async function appendContextEntry(sessionId, companion, role, content, metadata 
   return entry;
 }
 
+// Specialist replies are attributed inline ("[Tavily]: ...") so Klimt can
+// see and reference what each companion said instead of thinking he wrote it.
+function attributeEntryContent(entry) {
+  if (entry.role !== 'assistant' || !entry.companion || entry.companion === 'klimt') {
+    return entry.content;
+  }
+  const label = entry.companion.charAt(0).toUpperCase() + entry.companion.slice(1);
+  return `[${label}]: ${entry.content}`;
+}
+
 async function callKlimt(history, userMessage) {
   const messages = history
     .filter((entry) => entry.role === 'user' || entry.role === 'assistant')
-    .map((entry) => ({ role: entry.role, content: entry.content }));
+    .map((entry) => ({ role: entry.role, content: attributeEntryContent(entry) }));
   messages.push({ role: 'user', content: userMessage });
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -171,6 +189,17 @@ async function callNebius(history, userMessage) {
   return data.choices[0].message.content;
 }
 
+const AUREN_IMAGE_SUCCESS_SYSTEM_PROMPT =
+  'You are Auren, the creative visual companion for Crack On. You just ' +
+  'successfully generated the image the user asked for — it is already ' +
+  'rendered above your reply. Respond with one brief, confident line that ' +
+  'complements the image, e.g. "Here\'s what I created for you." Never say ' +
+  'you can\'t draw, and never suggest another tool — the image already exists.';
+const AUREN_IMAGE_FAILURE_SYSTEM_PROMPT =
+  'You are Auren, the creative visual companion for Crack On. Image ' +
+  'generation failed for this request. Briefly and kindly explain that and ' +
+  'suggest the user try again or rephrase the request.';
+
 async function callAuren(history, userMessage) {
   let imageUrl;
   try {
@@ -193,10 +222,13 @@ async function callAuren(history, userMessage) {
     console.warn('Auren image generation failed:', err.message);
   }
 
-  const messages = history
-    .filter((entry) => entry.role === 'user' || entry.role === 'assistant')
-    .map((entry) => ({ role: entry.role, content: entry.content }));
-  messages.push({ role: 'user', content: userMessage });
+  const messages = [
+    { role: 'system', content: imageUrl ? AUREN_IMAGE_SUCCESS_SYSTEM_PROMPT : AUREN_IMAGE_FAILURE_SYSTEM_PROMPT },
+    ...history
+      .filter((entry) => entry.role === 'user' || entry.role === 'assistant')
+      .map((entry) => ({ role: entry.role, content: entry.content })),
+    { role: 'user', content: userMessage },
+  ];
 
   const chatRes = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -351,12 +383,16 @@ async function handleApi(req, res, url) {
     }
     const intent = classifyIntent(message);
     console.log(`[intent] "${message.slice(0, 80)}" -> ${intent.companion} (${intent.reason})`);
+
+    const supabaseReadStart = Date.now();
     const history = await getContextEntries(sessionId);
+    const supabaseReadMs = Date.now() - supabaseReadStart;
     await appendContextEntry(sessionId, intent.companion, 'user', message);
 
     let reply;
     let sources;
     let imageUrl;
+    const responseStart = Date.now();
     try {
       if (intent.companion === 'tavily') {
         ({ reply, sources } = await callTavily(history, message, intent.depth));
@@ -373,6 +409,7 @@ async function handleApi(req, res, url) {
       intent.companion = 'klimt';
       reply = await callKlimt(history, message);
     }
+    const responseMs = Date.now() - responseStart;
 
     const assistantEntry = await appendContextEntry(
       sessionId,
@@ -381,7 +418,22 @@ async function handleApi(req, res, url) {
       reply,
       imageUrl ? { imageUrl } : {}
     );
-    res.end(JSON.stringify({ companion: intent.companion, reply, sources, imageUrl, entry: assistantEntry }));
+    // history was fetched before this turn's user+assistant entries were written.
+    const contextCount = history.length + 2;
+    res.end(JSON.stringify({
+      companion: intent.companion,
+      reply,
+      sources,
+      imageUrl,
+      entry: assistantEntry,
+      meta: {
+        supabase_read_ms: supabaseReadMs,
+        response_ms: responseMs,
+        context_count: contextCount,
+        intent: intent.label ?? 'general',
+        companion: intent.companion,
+      },
+    }));
     return;
   }
 

@@ -8,14 +8,47 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="app">
-    <header class="app-header">
-      <img src="assets/crack-on-wide-banner.png" alt="Crack On — Stop re-briefing. Crack On." class="banner" />
-    </header>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-expanded">
+        <div class="sidebar-brand-row">
+          <img src="assets/crack-on-wide-banner.png" alt="Crack On — Stop re-briefing. Crack On." class="sidebar-banner" />
+          <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn" title="Collapse sidebar" aria-label="Collapse sidebar">‹</button>
+        </div>
 
-    <section class="status-panel" aria-label="Companion status">
-      <div class="status-item">
-        <span class="label">Active companion</span>
+        <div id="hood-panel" class="hood-panel">
+          <div class="hood-header">
+            <span class="hood-title">⚡ Under the Hood</span>
+          </div>
+          <div class="hood-body">
+            <section class="hood-section">
+              <h3>Live Activity</h3>
+              <div id="hood-live" class="hood-live"></div>
+            </section>
+            <section class="hood-section">
+              <h3>Session Stats</h3>
+              <div class="hood-divider"></div>
+              <div class="hood-stats">
+                <div class="hood-stats-title">Session RBT saved</div>
+                <div><span>Dispatches</span><span id="stat-dispatches">0</span></div>
+                <div class="hood-stat-companions"><span>Companions used</span><span id="stat-companions">claude-sonnet-4-6 (Anthropic)</span></div>
+                <div><span>Context entries</span><span id="stat-context">0</span></div>
+                <div><span>Est. time saved</span><span id="stat-time">0.0 mins</span></div>
+                <div><span>Est. cost saved</span><span id="stat-cost">$0.00</span></div>
+              </div>
+              <div class="hood-divider"></div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" id="sidebar-expand-btn" class="sidebar-expand-btn" title="Expand sidebar" aria-label="Expand sidebar">
+        <img src="assets/crack-on-square-icon.png" alt="Expand Crack On sidebar" />
+      </button>
+    </aside>
+
+    <div id="app">
+      <section class="status-bar" aria-label="Companion status">
         <span class="companion-chip">
           <span id="companion-dot" class="companion-dot companion-klimt"></span>
           <span id="active-companion" class="value companion-klimt">Klimt</span>
@@ -23,29 +56,26 @@
           <span id="speaking-indicator" class="speaking-indicator" hidden>🔊 speaking…</span>
           <button type="button" id="stop-audio-btn" class="stop-audio-btn" hidden title="Stop audio" aria-label="Stop audio">⏹</button>
         </span>
-      </div>
-      <div class="status-item">
-        <span class="label">Session</span>
         <span id="session-indicator" class="value muted">connecting…</span>
-      </div>
-      <button type="button" id="new-session-btn" class="new-session-btn" title="Clear this session and start fresh">New session</button>
-    </section>
+        <button type="button" id="new-session-btn" class="new-session-btn" title="Clear this session and start fresh">New session</button>
+      </section>
 
-    <section class="thread-panel" id="thread" aria-live="polite">
-      <!-- Messages render here -->
-    </section>
+      <section class="thread-panel" id="thread" aria-live="polite">
+        <!-- Messages render here -->
+      </section>
 
-    <form id="composer" class="composer">
-      <input
-        id="composer-input"
-        type="text"
-        placeholder="Talk to Klimt…"
-        autocomplete="off"
-        required
-      />
-      <button type="button" id="mic-btn" class="mic-btn" title="Speak your message" aria-label="Speak your message">🎤</button>
-      <button type="submit">Send</button>
-    </form>
+      <form id="composer" class="composer">
+        <input
+          id="composer-input"
+          type="text"
+          placeholder="Talk to Klimt…"
+          autocomplete="off"
+          required
+        />
+        <button type="button" id="mic-btn" class="mic-btn" title="Speak your message" aria-label="Speak your message">🎤</button>
+        <button type="submit">Send</button>
+      </form>
+    </div>
   </div>
   <audio id="voice-player" hidden></audio>
   <script src="app.js" type="module"></script>
