@@ -377,7 +377,7 @@ function setComposerDisabled(disabled) {
   micBtnEl.disabled = disabled;
 }
 
-async function playVoice(text, voiceId, token) {
+async function playVoice(text, voiceId, token, onDone) {
   try {
     const res = await fetch('/api/tts', {
       method: 'POST',
@@ -396,12 +396,16 @@ async function playVoice(text, voiceId, token) {
     voicePlayerEl.onended = () => {
       speakingIndicatorEl.hidden = true;
       stopAudioBtnEl.hidden = true;
+      // Status only returns home once this companion has actually finished
+      // speaking, not the moment playback starts.
+      if (token === currentAudioToken) onDone?.();
     };
   } catch (err) {
     // Graceful fallback — text has already rendered, voice is optional.
     speakingIndicatorEl.hidden = true;
     stopAudioBtnEl.hidden = true;
     console.warn('Voice playback unavailable:', err.message);
+    if (token === currentAudioToken) onDone?.();
   }
 }
 
@@ -417,6 +421,7 @@ function stopVoice() {
 stopAudioBtnEl.addEventListener('click', () => {
   currentAudioToken += 1;
   stopVoice();
+  setActiveCompanion('klimt');
 });
 
 async function bootstrapSession() {
@@ -518,11 +523,18 @@ async function sendMessage(message) {
   setActiveCompanion(companion);
   renderMessage(companion, 'assistant', reply, sources, imageUrl);
   completeHoodSequence(meta, companion);
+
+  // Klimt is always home — but status only returns to him once this
+  // companion has actually finished speaking, not when playback starts.
+  const returnToKlimt = () => {
+    if (audioToken !== currentAudioToken) return;
+    setActiveCompanion('klimt');
+  };
   if (config?.voices?.[companion]) {
-    playVoice(reply, config.voices[companion], audioToken);
+    playVoice(reply, config.voices[companion], audioToken, returnToKlimt);
+  } else {
+    returnToKlimt();
   }
-  // Klimt is always home — control returns after every specialist dispatch.
-  setActiveCompanion('klimt');
 }
 
 composerEl.addEventListener('submit', (event) => {
