@@ -30,7 +30,7 @@ const COMPANION_NAMES = Object.fromEntries(
 // update the moment a message is sent. The server remains the source of
 // truth for actual dispatch/fallback.
 const CITATION_KEYWORDS = ['cite', 'citation', 'source', 'according to', 'reference', 'proof'];
-const CURRENT_EVENTS_KEYWORDS = ['today', 'latest', 'recent', 'news', 'this week', 'right now', 'currently', 'happening now'];
+const CURRENT_EVENTS_KEYWORDS = ['today', 'latest', 'recent', 'news', 'this week', 'right now', 'currently', 'happening now', 'stock price'];
 const OPEN_SOURCE_COMPUTE_KEYWORDS = [
   'open source model', 'llama', 'qwen', 'neural network weights',
   'transformer architecture', 'fine-tuning', 'gpu inference',
