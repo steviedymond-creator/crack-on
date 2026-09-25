@@ -36,7 +36,7 @@ const KLIMT_SYSTEM_PROMPT =
 // current-events triggers). Nebius fires only on narrow open-source
 // compute keywords so it stays rare during live demos (it is much slower).
 const CITATION_KEYWORDS = ['cite', 'citation', 'source', 'according to', 'reference', 'proof'];
-const CURRENT_EVENTS_KEYWORDS = ['today', 'latest', 'recent', 'news', 'this week', 'right now', 'currently', 'happening now'];
+const CURRENT_EVENTS_KEYWORDS = ['today', 'latest', 'recent', 'news', 'this week', 'right now', 'currently', 'happening now', 'stock price'];
 const OPEN_SOURCE_COMPUTE_KEYWORDS = [
   'open source model', 'llama', 'qwen', 'neural network weights',
   'transformer architecture', 'fine-tuning', 'gpu inference',
