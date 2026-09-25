@@ -38,8 +38,9 @@ const KLIMT_SYSTEM_PROMPT =
 const CITATION_KEYWORDS = ['cite', 'citation', 'source', 'according to', 'reference', 'proof'];
 const CURRENT_EVENTS_KEYWORDS = ['today', 'latest', 'recent', 'news', 'this week', 'right now', 'currently', 'happening now', 'stock price'];
 const OPEN_SOURCE_COMPUTE_KEYWORDS = [
-  'open source model', 'llama', 'qwen', 'neural network weights',
-  'transformer architecture', 'fine-tuning', 'gpu inference',
+  'open source model', 'open-source model', 'llama', 'qwen',
+  'neural network weights', 'transformer architecture', 'fine-tuning',
+  'gpu inference', 'language model weights', 'open source language',
 ];
 const IMAGE_GENERATION_KEYWORDS = ['generate an image', 'draw', 'picture of', 'image of', 'create an image', 'illustration', 'photo of', 'paint'];
 
