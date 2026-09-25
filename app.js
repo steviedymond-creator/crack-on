@@ -18,8 +18,8 @@ const newSessionBtnEl = document.getElementById('new-session-btn');
 const SESSION_STORAGE_KEY = 'crackon_session_id';
 const COMPANION_META = {
   klimt: { name: 'Klimt', voice: 'Cevin' },
-  tavily: { name: 'Tavily', voice: 'Domi' },
-  nebius: { name: 'Nebius', voice: 'Alex' },
+  tavily: { name: 'Tavily', voice: 'Maya' },
+  nebius: { name: 'Nebius', voice: 'Steve' },
   auren: { name: 'Auren', voice: 'Guy' },
 };
 const COMPANION_NAMES = Object.fromEntries(
@@ -32,10 +32,8 @@ const COMPANION_NAMES = Object.fromEntries(
 const CITATION_KEYWORDS = ['cite', 'citation', 'source', 'according to', 'reference', 'proof'];
 const CURRENT_EVENTS_KEYWORDS = ['today', 'latest', 'recent', 'news', 'this week', 'right now', 'currently', 'happening now'];
 const OPEN_SOURCE_COMPUTE_KEYWORDS = [
-  'open source', 'open-source', 'llama', 'qwen', 'weights', 'parameters',
-  'transformer architecture', 'neural network', 'machine learning',
-  'compute', 'inference', 'fine-tune', 'fine-tuning', 'embeddings',
-  'tokenizer', 'gpu', 'cuda',
+  'open source model', 'llama', 'qwen', 'neural network weights',
+  'transformer architecture', 'fine-tuning', 'gpu inference',
 ];
 const IMAGE_GENERATION_KEYWORDS = ['generate an image', 'draw', 'picture of', 'image of', 'create an image', 'illustration', 'photo of', 'paint'];
 
@@ -49,6 +47,105 @@ function guessIntent(message) {
 
 let config = null;
 let sessionId = null;
+
+const INTENT_LABELS = {
+  klimt: 'general',
+  tavily: 'citation_required',
+  nebius: 'open_source_compute',
+  auren: 'image_generation',
+};
+
+// Real technical identifiers shown in the Under the Hood panel — judges
+// should see what's actually running, not just the companion nickname.
+const COMPANION_MODEL_LABELS = {
+  klimt: 'claude-sonnet-4-6 (Anthropic)',
+  tavily: 'Tavily Search API',
+  nebius: 'Qwen/Qwen3-30B-A3B (Nebius Token Factory)',
+  auren: 'gpt-image-1 / gpt-5.5 (OpenAI)',
+};
+
+function routingLabel(companion) {
+  const model = COMPANION_MODEL_LABELS[companion] ?? companion;
+  const name = COMPANION_NAMES[companion] ?? companion;
+  return `${model} — ${name}`;
+}
+
+const sidebarEl = document.getElementById('sidebar');
+const sidebarCollapseBtnEl = document.getElementById('sidebar-collapse-btn');
+const sidebarExpandBtnEl = document.getElementById('sidebar-expand-btn');
+const hoodLiveEl = document.getElementById('hood-live');
+const statDispatchesEl = document.getElementById('stat-dispatches');
+const statCompanionsEl = document.getElementById('stat-companions');
+const statContextEl = document.getElementById('stat-context');
+const statTimeEl = document.getElementById('stat-time');
+const statCostEl = document.getElementById('stat-cost');
+
+const sessionStats = { dispatches: 0, companions: new Set(['klimt']), contextEntries: 0 };
+// RBT story is about human time, not raw API cost — see recalibration note.
+const MINUTES_SAVED_PER_DISPATCH = 7.5;
+const COST_SAVED_PER_DISPATCH = 1.5;
+
+function addHoodLine(text, extraClass = '') {
+  if (!hoodLiveEl) return;
+  const line = document.createElement('div');
+  line.className = `hood-line ${extraClass}`.trim();
+  line.textContent = text;
+  hoodLiveEl.appendChild(line);
+  hoodLiveEl.scrollTop = hoodLiveEl.scrollHeight;
+  requestAnimationFrame(() => line.classList.add('visible'));
+  return line;
+}
+
+function runHoodSequence(message, guessedCompanion) {
+  if (!hoodLiveEl) return;
+  hoodLiveEl.innerHTML = '';
+  addHoodLine(`\u2192 Input: ${message.slice(0, 40)}`);
+  addHoodLine(`\u2192 Intent: ${INTENT_LABELS[guessedCompanion] ?? 'general'}`);
+  addHoodLine(`\u2192 Routing to: ${routingLabel(guessedCompanion)}`, `companion-${guessedCompanion} pulse`);
+}
+
+function flashStat(el) {
+  if (!el) return;
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+}
+
+function updateSessionStats(companion, contextCount) {
+  sessionStats.dispatches += 1;
+  sessionStats.companions.add(companion);
+  sessionStats.contextEntries = contextCount;
+
+  if (statDispatchesEl) statDispatchesEl.textContent = sessionStats.dispatches;
+  if (statCompanionsEl) statCompanionsEl.textContent = [...sessionStats.companions].map((c) => COMPANION_MODEL_LABELS[c] ?? c).join(', ');
+  if (statContextEl) statContextEl.textContent = sessionStats.contextEntries;
+  if (statTimeEl) statTimeEl.textContent = `${(sessionStats.dispatches * MINUTES_SAVED_PER_DISPATCH).toFixed(1)} mins`;
+  if (statCostEl) statCostEl.textContent = `$${(sessionStats.dispatches * COST_SAVED_PER_DISPATCH).toFixed(2)}`;
+  for (const el of [statDispatchesEl, statCompanionsEl, statContextEl, statTimeEl, statCostEl]) flashStat(el);
+}
+
+function completeHoodSequence(meta, companion) {
+  if (!meta || !hoodLiveEl) return;
+  let delay = 150;
+  setTimeout(() => addHoodLine(`\u2192 Supabase read: ${meta.supabase_read_ms}ms`), delay);
+  delay += 250;
+  setTimeout(() => addHoodLine(`\u2192 ${COMPANION_NAMES[companion] ?? companion} response: ${(meta.response_ms / 1000).toFixed(1)}s`), delay);
+  delay += 250;
+  setTimeout(() => addHoodLine(`\u2192 Context entries: ${meta.context_count}`), delay);
+  delay += 250;
+  setTimeout(() => {
+    addHoodLine(`\u2192 Returning to: ${routingLabel('klimt')}`, 'companion-klimt pulse');
+    updateSessionStats(companion, meta.context_count);
+  }, delay);
+}
+
+sidebarCollapseBtnEl?.addEventListener('click', () => {
+  sidebarEl.classList.add('collapsed');
+});
+
+sidebarExpandBtnEl?.addEventListener('click', () => {
+  sidebarEl.classList.remove('collapsed');
+});
 
 function setActiveCompanion(companion) {
   const meta = COMPANION_META[companion] ?? { name: companion, voice: '—' };
@@ -279,7 +376,7 @@ function setComposerDisabled(disabled) {
   micBtnEl.disabled = disabled;
 }
 
-async function playVoice(text, voiceId) {
+async function playVoice(text, voiceId, token) {
   try {
     const res = await fetch('/api/tts', {
       method: 'POST',
@@ -288,6 +385,9 @@ async function playVoice(text, voiceId) {
     });
     if (!res.ok) throw new Error(`TTS failed: ${res.status}`);
     const blob = await res.blob();
+    // A newer dispatch may have started while this TTS request was in
+    // flight — drop it so voices never bleed into each other.
+    if (token !== currentAudioToken) return;
     voicePlayerEl.src = URL.createObjectURL(blob);
     speakingIndicatorEl.hidden = false;
     stopAudioBtnEl.hidden = false;
@@ -304,11 +404,18 @@ async function playVoice(text, voiceId) {
   }
 }
 
-stopAudioBtnEl.addEventListener('click', () => {
+let currentAudioToken = 0;
+
+function stopVoice() {
   voicePlayerEl.pause();
   voicePlayerEl.currentTime = 0;
   speakingIndicatorEl.hidden = true;
   stopAudioBtnEl.hidden = true;
+}
+
+stopAudioBtnEl.addEventListener('click', () => {
+  currentAudioToken += 1;
+  stopVoice();
 });
 
 async function bootstrapSession() {
@@ -347,6 +454,8 @@ async function sendOpeningGreeting() {
   setActiveCompanion('klimt');
   const thinkingEl = renderThinking('klimt');
   setComposerDisabled(true);
+  const audioToken = ++currentAudioToken;
+  stopVoice();
   try {
     const res = await fetch('/api/greet', {
       method: 'POST',
@@ -357,7 +466,7 @@ async function sendOpeningGreeting() {
     const { companion, reply } = await res.json();
     renderMessage(companion, 'assistant', reply);
     if (config?.voices?.[companion]) {
-      playVoice(reply, config.voices[companion]);
+      playVoice(reply, config.voices[companion], audioToken);
     }
   } catch (err) {
     console.warn('Opening greeting unavailable:', err.message);
@@ -370,12 +479,18 @@ async function sendOpeningGreeting() {
 async function sendMessage(message) {
   renderMessage(null, 'user', message);
 
+  // Cancel any companion still speaking the instant a new dispatch starts —
+  // no two companions should ever speak simultaneously or bleed together.
+  const audioToken = ++currentAudioToken;
+  stopVoice();
+
   // Optimistic UI: switch the status panel the instant we dispatch, before
   // the response arrives — the server may still fall back to Klimt.
   const guessedCompanion = guessIntent(message);
   setActiveCompanion(guessedCompanion);
   const thinkingEl = renderThinking(guessedCompanion);
   setComposerDisabled(true);
+  runHoodSequence(message, guessedCompanion);
 
   let res;
   try {
@@ -395,11 +510,15 @@ async function sendMessage(message) {
     setActiveCompanion('klimt');
     return;
   }
-  const { companion, reply, sources, imageUrl } = await res.json();
+  // Voice must always be resolved from the companion the server actually
+  // dispatched to (it may differ from guessedCompanion on fallback), never
+  // from whichever companion was previously active.
+  const { companion, reply, sources, imageUrl, meta } = await res.json();
   setActiveCompanion(companion);
   renderMessage(companion, 'assistant', reply, sources, imageUrl);
+  completeHoodSequence(meta, companion);
   if (config?.voices?.[companion]) {
-    playVoice(reply, config.voices[companion]);
+    playVoice(reply, config.voices[companion], audioToken);
   }
   // Klimt is always home — control returns after every specialist dispatch.
   setActiveCompanion('klimt');
@@ -442,6 +561,7 @@ if (SpeechRecognitionCtor) {
 }
 
 async function init() {
+  if (statCompanionsEl) statCompanionsEl.textContent = [...sessionStats.companions].map((c) => COMPANION_MODEL_LABELS[c] ?? c).join(', ');
   config = await fetch('/api/config').then((res) => res.json());
   await bootstrapSession();
 }
