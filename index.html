@@ -16,6 +16,14 @@
           <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn" title="Collapse sidebar" aria-label="Collapse sidebar">‹</button>
         </div>
 
+        <ul class="companion-roster">
+          <li><span class="companion-dot companion-klimt"></span><span class="roster-name">Klimt</span><span class="roster-descriptor">Anchor · Claude Sonnet</span></li>
+          <li><span class="companion-dot companion-auren"></span><span class="roster-name">Auren</span><span class="roster-descriptor">Creative Visual · GPT Image</span></li>
+          <li><span class="companion-dot companion-tavily"></span><span class="roster-name">Tavily</span><span class="roster-descriptor">Search &amp; Citations · Tavily API</span></li>
+          <li><span class="companion-dot companion-nebius"></span><span class="roster-name">Nebius</span><span class="roster-descriptor">Open-Source Explainer · Qwen3</span></li>
+          <li><span class="companion-dot companion-edison"></span><span class="roster-name">Edison</span><span class="roster-descriptor">Deep Technical Analysis · NVIDIA Nemotron</span></li>
+        </ul>
+
         <div id="hood-panel" class="hood-panel">
           <div class="hood-header">
             <span class="hood-title">⚡ Under the Hood</span>
@@ -31,7 +39,7 @@
               <div class="hood-stats">
                 <div class="hood-stats-title">Session RBT saved</div>
                 <div><span>Dispatches</span><span id="stat-dispatches">0</span></div>
-                <div class="hood-stat-companions"><span>Companions used</span><span id="stat-companions">claude-sonnet-4-6 (Anthropic)</span></div>
+                <div class="hood-stat-companions"><span>Companions used</span><span id="stat-companions">claude-sonnet-5-5 (Anthropic)</span></div>
                 <div><span>Context entries</span><span id="stat-context">0</span></div>
                 <div><span>Est. time saved</span><span id="stat-time">0.0 mins</span></div>
                 <div><span>Est. cost saved</span><span id="stat-cost">$0.00</span></div>
@@ -39,6 +47,33 @@
               <div class="hood-divider"></div>
             </section>
           </div>
+        </div>
+
+        <div id="audio-panel" class="audio-panel">
+          <div class="audio-panel-header">
+            <span class="audio-panel-title">🔊 Audio</span>
+            <button type="button" id="master-mute-btn" class="master-mute-btn" title="Mute all companions">All</button>
+          </div>
+
+          <div class="audio-panel-speed">
+            <span class="audio-label">Speed</span>
+            <input type="range" id="voice-speed-slider" class="voice-speed-slider"
+              min="0.5" max="2.0" step="0.25" value="1.0" />
+            <span id="voice-speed-label" class="voice-speed-label">1.0×</span>
+          </div>
+
+          <ul class="audio-companion-list">
+            <li><span class="companion-dot companion-klimt"></span><span class="audio-name">Klimt</span>
+              <button type="button" class="companion-mute-btn" data-companion="klimt">🔊</button></li>
+            <li><span class="companion-dot companion-auren"></span><span class="audio-name">Auren</span>
+              <button type="button" class="companion-mute-btn" data-companion="auren">🔊</button></li>
+            <li><span class="companion-dot companion-tavily"></span><span class="audio-name">Tavily</span>
+              <button type="button" class="companion-mute-btn" data-companion="tavily">🔊</button></li>
+            <li><span class="companion-dot companion-nebius"></span><span class="audio-name">Nebius</span>
+              <button type="button" class="companion-mute-btn" data-companion="nebius">🔊</button></li>
+            <li><span class="companion-dot companion-edison"></span><span class="audio-name">Edison</span>
+              <button type="button" class="companion-mute-btn" data-companion="edison">🔊</button></li>
+          </ul>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 // Verifies P1: Supabase schema is reachable — creates a session, writes a
-// context entry, then reads both back using the anon key.
+// context entry, then reads both back using the service key when set,
+// otherwise the anon key.
 import { readFileSync } from 'node:fs';
 
 function loadEnv(path) {
@@ -14,16 +15,16 @@ function loadEnv(path) {
 
 const env = loadEnv(new URL('../.env', import.meta.url));
 const SUPABASE_URL = env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = env.SUPABASE_ANON_KEY;
+const SUPABASE_KEY = env.SUPABASE_SERVICE_KEY || env.SUPABASE_ANON_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error('Missing SUPABASE_URL or SUPABASE_ANON_KEY in .env');
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('Missing SUPABASE_URL, or both SUPABASE_SERVICE_KEY and SUPABASE_ANON_KEY, in .env');
   process.exit(1);
 }
 
 const headers = {
-  apikey: SUPABASE_ANON_KEY,
-  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+  apikey: SUPABASE_KEY,
+  Authorization: `Bearer ${SUPABASE_KEY}`,
   'Content-Type': 'application/json',
   Prefer: 'return=representation',
 };
@@ -59,7 +60,7 @@ async function main() {
 
   const readRes = await fetch(
     `${SUPABASE_URL}/rest/v1/context_entries?session_id=eq.${session.id}&select=*`,
-    { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
+    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
   );
   if (!readRes.ok) {
     throw new Error(`read back failed: ${readRes.status} ${await readRes.text()}`);
