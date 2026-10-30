@@ -164,7 +164,7 @@ const COMPANION_MODEL_LABELS = {
   klimt: 'claude-sonnet-5-5 (Anthropic)',
   tavily: 'Tavily Search API',
   nebius: 'Qwen/Qwen3-30B-A3B (Nebius Token Factory)',
-  auren: 'gpt-image-1 / gpt-5.6-sol (OpenAI)',
+  auren: 'gpt-image-2.5-flare / gpt-5.6-sol (OpenAI)',
   edison: 'nvidia/nemotron-3.5-lightning-30b-a3b (NVIDIA NIM)',
 };
 
