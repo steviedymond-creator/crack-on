@@ -60,7 +60,7 @@ You need Node 18 or later. There is nothing to install with npm.
 
 ## Notes
 
-This is a demo. There is no login, so do not use it for private data. In Supabase, `supabase/schema.sql` turns row security on with no public policies. The server uses a private service key held only on the server, and the browser never talks to Supabase directly. The demo saves conversations to its database and logs request times, routes and client addresses, so it must not be used for private data.
+This is a demo with no login. It saves conversations to its database and logs request times, routes and client addresses, so do not use it for private data. In Supabase, `supabase/schema.sql` turns row security on with no public policies. The server uses a private service key held only on the server, and the browser never talks to Supabase directly.
 
 ## Licence
 

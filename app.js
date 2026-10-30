@@ -165,7 +165,7 @@ const COMPANION_MODEL_LABELS = {
   tavily: 'Tavily Search API',
   nebius: 'Qwen/Qwen3-30B-A3B (Nebius Token Factory)',
   auren: 'gpt-image-1 / gpt-5.6-sol (OpenAI)',
-  edison: 'nvidia/nemotron-3-super-120b-a12b (NVIDIA NIM)',
+  edison: 'nvidia/nemotron-3.5-lightning-30b-a3b (NVIDIA NIM)',
 };
 
 const sidebarEl = document.getElementById('sidebar');
@@ -1035,6 +1035,7 @@ async function init() {
     rejectedNote = 'That code was not accepted. ';
   }
   config = await configRes.json();
+  if (config.edisonModel) COMPANION_MODEL_LABELS.edison = `${config.edisonModel} (NVIDIA NIM)`;
   await bootstrapSession();
 }
 

@@ -812,6 +812,7 @@ async function handleApi(req, res, url) {
   if (req.method === 'GET' && url.pathname === '/api/config') {
     res.end(JSON.stringify({
       voices: VOICES,
+      edisonModel: EDISON_MODEL,
     }));
     return;
   }
